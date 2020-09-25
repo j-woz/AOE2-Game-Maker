@@ -1,0 +1,137 @@
+
+= AOE2 Game Maker
+
+Goal: Propose reasonable games, including with AI opponents of various levels.
+
+== Overview
+
+* Each player has a rank, starting at 1.
+* Rank goes up by 1 when you win.
+* Rank goes down by 1 when you lose.
+* Ranks may not go below 0.
+* The various AI levels are included as A2, A3, A4.
+* AI players are treated as humans for ranks.
+* Games will be proposed by simply minimizing the rank difference
+  between the per-team rank sum.
+* Thus, the process will constantly be proposing and updating
+  games based on the win/loss history.
+
+== Practicals
+
+* The history is stored in a Google Sheet:
+* This is downloaded as CSV and run through a Python program.
+* The program evaluates all possible combinations and reports the
+  lowest rank difference.
+* Any player can run the program and get the same result.
+
+== Sample history
+
+Consider players AA-GG.  Each player has a rank based on the win/loss
+records shown in brackets and an instrinsic value known only to God (in parens).
+
+Starting values:
+
+=== Game 1: 
+
+[cols="^,^,^,^,^,^,^,^"]
+|===
+| AA(7)[1] | BB(2)[1] | CC(0)[1] | DD(2)[1] | EE(4)[1] | FF(5)[1] | GG(5)[1] | HH(3)[1]
+|===
+
+Date: 2020-09-25
+
+AA,BB,DD,FF vs. CC,EE,GG,HH -> 0
+
+16 vs. 12 (diff 4) -> AA,BB,DD,FF wins
+
+=== Game 2:
+
+[cols="^,^,^,^,^,^,^,^"]
+|===
+| AA(7)[2] | BB(2)[2] | CC(0)[0] | DD(2)[2] | EE(4)[0] | FF(5)[2] | GG(5)[0] | HH(3)[0]
+|===
+
+----
+All players:
+AA: [2] 1/1 (100%)
+BB: [2] 1/1 (100%)
+DD: [2] 1/1 (100%)
+FF: [2] 1/1 (100%)
+CC: [0] 0/1   (0%)
+EE: [0] 0/1   (0%)
+GG: [0] 0/1   (0%)
+HH: [0] 0/1   (0%)
+----
+
+AA,BB,CC,EE vs. DD,FF,GG,HH -> 0
+
+13 vs. 15 (diff 2) -> DD,FF,GG,HH wins
+
+=== Game 3:
+
+[cols="^,^,^,^,^,^,^,^"]
+|===
+| AA(7)[1] | BB(2)[1] | CC(0)[0] | DD(2)[3] | EE(4)[0] | FF(5)[3] | GG(5)[1] | HH(3)[1]
+|===
+
+----
+All players:
+DD: [3] 2/2 (100%)
+FF: [3] 2/2 (100%)
+AA: [1] 1/2  (50%)
+BB: [1] 1/2  (50%)
+GG: [1] 1/2  (50%)
+HH: [1] 1/2  (50%)
+CC: [0] 0/2   (0%)
+EE: [0] 0/2   (0%)
+----
+
+AA,BB,CC,FF vs. DD,EE,GG,HH -> 0
+
+14 vs. 14 (diff 0!) -> tie! say DD,EE,GG,HH win
+
+=== Game 4:
+
+[cols="^,^,^,^,^,^,^,^"]
+|===
+| AA(7)[0] | BB(2)[0] | CC(0)[0] | DD(2)[4] | EE(4)[1] | FF(5)[2] | GG(5)[2] | HH(3)[2]
+|===
+
+----
+All players:
+DD: [4] 3/3 (100%)
+FF: [2] 2/3  (66%)
+GG: [2] 2/3  (66%)
+HH: [2] 2/3  (66%)
+EE: [1] 1/3  (33%)
+AA: [0] 1/3  (33%)
+BB: [0] 1/3  (33%)
+CC: [0] 0/3   (0%)
+----
+
+AA,BB,DD,FF vs. CC,EE,GG,HH -> 1
+
+16 vs. 12 (diff 4) -> AA,BB,DD,FF win
+
+=== Game 5:
+
+[cols="^,^,^,^,^,^,^,^"]
+|===
+| AA(7)[1] | BB(2)[1] | CC(0)[0] | DD(2)[5] | EE(4)[0] | FF(5)[3] | GG(5)[1] | HH(3)[1]
+|===
+
+----
+All players:
+DD: [5] 4/4 (100%)
+FF: [3] 3/4  (75%)
+AA: [1] 2/4  (50%)
+BB: [1] 2/4  (50%)
+GG: [1] 2/4  (50%)
+HH: [1] 2/4  (50%)
+CC: [0] 0/4   (0%)
+EE: [0] 1/4  (25%)
+----
+
+AA,CC,DD,EE vs. BB,FF,GG,HH -> 0
+
+13 vs. 15 (diff 2) -> BB,FF,GG,HH win
