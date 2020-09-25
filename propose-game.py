@@ -1,18 +1,16 @@
 
 import csv, sys
 
-csvfile = None
-online  = None
+global args
 
 def do_argparse():
     import argparse
-    parser = argparse.ArgumentParser(description='Propose a game.')
-    parser.add_argument('csvfile')
-    parser.add_argument('online')
+    global args
+    parser = argparse.ArgumentParser(description="Propose a game.")
+    parser.add_argument("csvfile", help="The CSV download")
+    parser.add_argument("online", help="Players online")
+    parser.add_argument("game_number", help="Game number today")
     args = parser.parse_args()
-    global csvfile, online
-    csvfile, online = args.csvfile, args.online
-
 
 do_argparse()
 
@@ -86,7 +84,7 @@ def read_rows(reader, columns):
 
 dialect = csv.unix_dialect()
 dialect.strict = True
-with open(csvfile, newline='') as fp:
+with open(args.csvfile, newline='') as fp:
     reader = csv.reader(fp, dialect=dialect)
     columns = read_header(next(reader))
     read_rows(reader, columns)
@@ -109,7 +107,7 @@ for p in players:
     print(p.description())
 
 # Split up given online player names:
-active = online.split(",")
+active = args.online.split(",")
 N = len(active)
 
 # Check that all players are in the spreadsheet
@@ -262,3 +260,16 @@ for i in range(0, 10):
 best_diff = best[0][0]
 print("best diff: %i" % best_diff)
 
+ties = 0
+for b in best:
+    if b[0] == best_diff:
+        ties += 1
+print("ties for best game: %i" % ties)
+if ties > 1:
+    import datetime
+    seed = datetime.datetime.now().strftime("%Y%m%d")
+    seed += args.game_number
+    print("seed: " + seed)
+    import random
+    random.seed(int(seed))
+    print("use index: " + str(random.randint(0,ties)))
