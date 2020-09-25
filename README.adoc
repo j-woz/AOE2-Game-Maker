@@ -18,7 +18,8 @@ Goal: Propose reasonable games, including with AI opponents of various levels.
 
 == Practicals
 
-* The history is stored in a Google Sheet:
+* The history is stored in a Google Sheet: +
+https://docs.google.com/spreadsheets/d/1hgXj7zzib6GH0hC1FD9irXVVuFE-t7G1-JKbbBz1Gyw
 * This is downloaded as CSV and run through a Python program.
 * The program evaluates all possible combinations and reports the
   lowest rank difference.
