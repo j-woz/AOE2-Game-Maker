@@ -1,4 +1,8 @@
 
+"""
+PROPOSE GAME PY
+"""
+
 import csv, sys
 
 global args
@@ -72,6 +76,7 @@ def read_rows(reader, columns):
         for token in data[1:]: # skip column 0 (dates)
             column += 1
             if len(token) == 0: continue
+            token = token.strip()
             player = columns[column]
             if   token == "W":  player.win()
             elif token == "L":  player.lose()
@@ -99,7 +104,7 @@ def fail(msg):
     print("FAIL: " + msg)
     exit(1)
 
-# Sort all Players into a list    
+# Sort all Players into a list
 players = sorted(columns.values(), key=Player.get_rank, reverse=True)
 
 print("All players:")
@@ -113,7 +118,7 @@ N = len(active)
 # Check that all players are in the spreadsheet
 for name in active:
     found = False
-    for p in players: 
+    for p in players:
         if name == p.name:
             found = True
             continue
@@ -180,13 +185,19 @@ def best_add(combo):
     # print("--")
     # print("")
 
+
 def show_best(i):
+    """ Show entry i from the list of best """
     if best[i] != None:
         print("%2i    %s -> %i" % \
               (i, named_teams(best[i][1]), best[i][0]))
 
-    
+
 def score(combo):
+    """
+    Obtain a score for the combo based on the difference of
+    player ranks - lower is better
+    """
     scores = [0,0]
     # print("score: " + sl(combo))
     for i in range(0, len(combo)):
@@ -197,13 +208,14 @@ def score(combo):
 
 
 def named_teams(combo):
+    """ Show the player names and teams for this combo """
     names = [[], []]
     for i in range(0, len(combo)):
         names[combo[i]-1].append(columns[i+1].name)
     return "%s vs. %s" % (",".join(names[0]), ",".join(names[1]))
 
 
-# Player 0 is always on team 1:        
+# Player 0 is always on team 1:
 teams = [ 1 ]
 # Initial combo:
 for i in range(1,int(N/2)):
@@ -211,7 +223,7 @@ for i in range(1,int(N/2)):
 for i in range(int(N/2),N):
     teams.append(2)
 
-total = 0    
+total = 0
 combos = []
 combos.append(teams)
 total += 1
@@ -245,21 +257,24 @@ def samples(teams, start):
             combos.append(teams_new)
             best_add(teams_new)
             samples(teams_new, start+1)
-  
+
 samples(teams, 1)
 
+# Show combos for debugging:
 i = 0
 for combo in combos:
     # print(sl(combo) + " : %2i" % i)
     i += 1
 print("combos: %i" % len(combos))
 
+# Report the best!
 for i in range(0, 10):
     show_best(i)
 
 best_diff = best[0][0]
 print("best diff: %i" % best_diff)
 
+# Break ties for best game if any:
 ties = 0
 for b in best:
     if b[0] == best_diff:
@@ -268,8 +283,9 @@ print("ties for best game: %i" % ties)
 if ties > 1:
     import datetime
     seed = datetime.datetime.now().strftime("%Y%m%d")
+    # seed = "20200925" # Hard-code for demo if desired
     seed += args.game_number
     print("seed: " + seed)
     import random
     random.seed(int(seed))
-    print("use index: " + str(random.randint(0,ties)))
+    print("use index: " + str(random.randint(0,ties-1)))
