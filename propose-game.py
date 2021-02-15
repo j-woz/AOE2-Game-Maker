@@ -57,13 +57,19 @@ class Player:
 
 # Map from CSV column number to Player
 # Indexed from 1
+# Only contains active players
 columns = {}
 
-def read_header(header):
+# Map from name to Player
+# Only contains active players
+names = {}
+
+def read_header(header, active):
     column = 0
     for name in header[1:]: # skip column 0 (dates)
-        column += 1
         if len(name) == 0: continue
+        if name not in active: continue
+        column += 1
         player = Player(name, column)
         columns[column] = player
     return columns
@@ -75,6 +81,7 @@ def read_rows(reader, columns):
         if data[0] == "End data": break # special value in CSV
         for token in data[1:]: # skip column 0 (dates)
             column += 1
+            if column not in columns: continue
             if len(token) == 0: continue
             token = token.strip()
             player = columns[column]
@@ -86,18 +93,21 @@ def read_rows(reader, columns):
                                  (row, column, token))
     row += 1
 
+# Split up given online player names:
+active = args.online.split(",")
+N = len(active)
 
 dialect = csv.unix_dialect()
 dialect.strict = True
 with open(args.csvfile, newline='') as fp:
     reader = csv.reader(fp, dialect=dialect)
-    columns = read_header(next(reader))
+    columns = read_header(next(reader), active)
     read_rows(reader, columns)
 
 # print(columns)
 
-# for column in columns:
-#     print("%2i: %s" % (column, columns[column].description()))
+for column in columns:
+    print("%2i: %s" % (column, columns[column].description()))
 
 
 def fail(msg):
@@ -111,9 +121,10 @@ print("All players:")
 for p in players:
     print(p.description())
 
-# Split up given online player names:
-active = args.online.split(",")
-N = len(active)
+for name in active:
+    for p in players:
+        if name == p.name:
+            names[name] = p
 
 # Check that all players are in the spreadsheet
 for name in active:
@@ -199,9 +210,10 @@ def score(combo):
     player ranks - lower is better
     """
     scores = [0,0]
-    # print("score: " + sl(combo))
+    print("score: " + sl(combo))
     for i in range(0, len(combo)):
-        scores[combo[i]-1] += columns[i+1].rank
+        rank = columns[i+1].rank
+        scores[combo[i]-1] += rank # columns[i+1].rank
     diff = abs(scores[0]-scores[1])
     # print(" -> %s -> %s -> %i" % (str(scores), named_teams(combo), diff))
     return diff
@@ -218,10 +230,14 @@ def named_teams(combo):
 # Player 0 is always on team 1:
 teams = [ 1 ]
 # Initial combo:
+i = 0
+# for name in names.keys():
 for i in range(1,int(N/2)):
     teams.append(1)
 for i in range(int(N/2),N):
     teams.append(2)
+
+print(teams)
 
 total = 0
 combos = []
@@ -277,6 +293,7 @@ print("best diff: %i" % best_diff)
 # Break ties for best game if any:
 ties = 0
 for b in best:
+    if b == None: continue
     if b[0] == best_diff:
         ties += 1
 print("ties for best game: %i" % ties)
