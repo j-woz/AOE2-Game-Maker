@@ -7,6 +7,8 @@ import csv, sys
 
 global args
 
+## Arguments
+
 def do_argparse():
     import argparse
     global args
@@ -18,7 +20,46 @@ def do_argparse():
 
 do_argparse()
 
+## Main data
 
+# Split up given online player names:
+active = args.online.split(",")
+N = len(active)
+
+# Map from CSV column number to Player
+# Indexed from 1
+# Only contains active players
+columns = {}
+
+# Map from name to Player
+# Only contains active players
+names = {}
+
+# List by number of Players
+# Only contains active players
+# From 0..N-1
+index = []
+
+
+## Utilities
+
+def fail(msg):
+    print("FAIL: " + msg)
+    exit(1)
+
+def out(level, message):
+    """ output message with indentation level """
+    if not verbose:
+        return
+    for i in range(0,level):
+        sys.stdout.write("  ")
+    print(message)
+
+def sl(L):
+    """ string-list """
+    return " " + " ".join(map(str, L))
+
+    
 class Player:
 
     def __init__(self, name, column):
@@ -55,27 +96,24 @@ class Player:
         return player.rank
 
 
-# Map from CSV column number to Player
-# Indexed from 1
-# Only contains active players
-columns = {}
-
-# Map from name to Player
-# Only contains active players
-names = {}
-
 def read_header(header, active):
+    global columns, names, index
     column = 0
     for name in header[1:]: # skip column 0 (dates)
+        column += 1
         if len(name) == 0: continue
         if name not in active: continue
-        column += 1
         player = Player(name, column)
         columns[column] = player
-    return columns
+        names[name] = player
+        index.append(player)
 
-def read_rows(reader, columns):
-    row = 2
+        
+## Input functions
+        
+def read_rows(reader):
+    global columns
+    row = 2 # skip header
     for data in reader:
         column = 0
         if data[0] == "End data": break # special value in CSV
@@ -91,40 +129,31 @@ def read_rows(reader, columns):
                 raise ValueError("Bad data: " +
                                  "row=%i column=%i data='%s'" %
                                  (row, column, token))
+            # print("%s %s %i" % (player.name, token, player.rank))
+
     row += 1
 
-# Split up given online player names:
-active = args.online.split(",")
-N = len(active)
+def read_csv(args):
+    dialect = csv.unix_dialect()
+    dialect.strict = True
+    with open(args.csvfile, newline='') as fp:
+        reader = csv.reader(fp, dialect=dialect)
+        read_header(next(reader), active)
+        read_rows(reader)
 
-dialect = csv.unix_dialect()
-dialect.strict = True
-with open(args.csvfile, newline='') as fp:
-    reader = csv.reader(fp, dialect=dialect)
-    columns = read_header(next(reader), active)
-    read_rows(reader, columns)
+read_csv(args)
 
-# print(columns)
-
-for column in columns:
-    print("%2i: %s" % (column, columns[column].description()))
-
-
-def fail(msg):
-    print("FAIL: " + msg)
-    exit(1)
+# i = 0
+# for player in index:
+#     print("%2i: %s" % (i, player.description()))
+#     i += 1
 
 # Sort all Players into a list
-players = sorted(columns.values(), key=Player.get_rank, reverse=True)
+players = sorted(index, key=Player.get_rank, reverse=True)
 
 print("All players:")
 for p in players:
     print(p.description())
-
-for name in active:
-    for p in players:
-        if name == p.name:
-            names[name] = p
 
 # Check that all players are in the spreadsheet
 for name in active:
@@ -146,18 +175,6 @@ if len(unique) != len(active):
 del unique
 
 verbose = False
-
-def out(level, message):
-    """ output message with indentation level """
-    if not verbose:
-        return
-    for i in range(0,level):
-        sys.stdout.write("  ")
-    print(message)
-
-def sl(L):
-    """ string-list """
-    return " " + " ".join(map(str, L))
 
 # Start handling combos...
 # A combo is an list of team numbers, one for each player
@@ -208,11 +225,14 @@ def score(combo):
     """
     Obtain a score for the combo based on the difference of
     player ranks - lower is better
+    combo : e.g., [1,2,1,2]
     """
+    global index
+    # Scores for Team 1, Team 2
     scores = [0,0]
-    print("score: " + sl(combo))
+    # print("score: " + sl(combo))
     for i in range(0, len(combo)):
-        rank = columns[i+1].rank
+        rank = index[i].rank
         scores[combo[i]-1] += rank # columns[i+1].rank
     diff = abs(scores[0]-scores[1])
     # print(" -> %s -> %s -> %i" % (str(scores), named_teams(combo), diff))
@@ -221,9 +241,10 @@ def score(combo):
 
 def named_teams(combo):
     """ Show the player names and teams for this combo """
+    global index
     names = [[], []]
     for i in range(0, len(combo)):
-        names[combo[i]-1].append(columns[i+1].name)
+        names[combo[i]-1].append(index[i].name)
     return "%s vs. %s" % (",".join(names[0]), ",".join(names[1]))
 
 
@@ -248,7 +269,7 @@ def samples(teams, start):
     """ Generate all unique combos, add to global list combos """
     global total
     out(start, "samples[%i]" % start)
-    out(start, sl(teams))
+    # out(start, sl(teams))
     if start == N-1:
         out(start, "done!")
         return
