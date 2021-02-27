@@ -1,4 +1,6 @@
 
+:toc:
+
 = AOE2 Game Maker
 
 Goals:
