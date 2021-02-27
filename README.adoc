@@ -80,7 +80,7 @@ so that is the best difference.  There are no ties.
 === Bigger 4v4 game
 
 ----
-python3 ./propose-game.py data/2021-02-26.csv EW,TD,RO,BF,JW,AM,MM,EO 1
+$ python3 ./propose-game.py data/2021-02-26.csv EW,TD,RO,BF,JW,AM,MM,EO 1
 All players:
 BF: [6] 7/11  (63%)
 RO: [4] 6/9  (66%)
