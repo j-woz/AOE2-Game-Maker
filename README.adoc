@@ -46,7 +46,7 @@ positional arguments:
   game_number  Game number today
 ----
 
-=== Simple 2v2 game:
+=== Simple 2v2 game
 
 Four players:
 
