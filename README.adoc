@@ -1,7 +1,10 @@
 
 = AOE2 Game Maker
 
-Goal: Propose reasonable games, including with AI opponents of various levels.
+Goals:
+
+. Propose reasonable games, including with AI opponents of various levels.
+. Be extremely simple.
 
 == Overview
 
@@ -24,6 +27,100 @@ https://docs.google.com/spreadsheets/d/1hgXj7zzib6GH0hC1FD9irXVVuFE-t7G1-JKbbBz1
 * The program evaluates all possible combinations and reports the
   lowest rank difference.
 * Any player can run the program and get the same result.
+
+== Sample output
+
+Based on data after the evening of 2021-02-26.
+
+----
+$ python3 ./propose-game.py --help                           
+usage: propose-game.py [-h] csvfile online game_number
+
+Propose a game.
+
+positional arguments:
+  csvfile      The CSV download
+  online       Players online
+  game_number  Game number today
+----
+
+=== Simple 2v2 game:
+
+Four players:
+
+----
+$ python3 ./propose-game.py data/2021-02-26.csv EW,TD,RO,BF 1
+All players:
+BF: [6] 7/11  (63%)
+RO: [4] 6/9  (66%)
+EW: [2] 6/11  (54%)
+TD: [0] 4/10  (40%)
+combos: 3
+ 0    EW,RO vs. BF,TD -> 0
+ 1    EW,TD vs. BF,RO -> 8
+best diff: 0
+ties for best game: 1
+----
+
+Players are shown as:
+----
+INITIALS: [RANK] [WINS]/[TOTAL] (PCT%)
+----
+
+There are 3 possible player combinations.
+
+The sum:
+----
+(EW+RO) - (BF+TD) = 0
+----
+so that is the best difference.  There are no ties.
+
+=== Bigger 4v4 game
+
+----
+python3 ./propose-game.py data/2021-02-26.csv EW,TD,RO,BF,JW,AM,MM,EO 1
+All players:
+BF: [6] 7/11  (63%)
+RO: [4] 6/9  (66%)
+MM: [3] 4/6  (66%)
+JW: [2] 4/10  (40%)
+EW: [2] 6/11  (54%)
+EO: [1] 1/4  (25%)
+AM: [0] 1/4  (25%)
+TD: [0] 4/10  (40%)
+combos: 35
+ 0    JW,EW,RO,EO vs. AM,MM,BF,TD -> 0
+ 1    JW,AM,MM,RO vs. EW,BF,TD,EO -> 0
+ 2    JW,AM,BF,EO vs. EW,MM,RO,TD -> 0
+ 3    JW,MM,RO,TD vs. EW,AM,BF,EO -> 0
+ 4    JW,BF,TD,EO vs. EW,AM,MM,RO -> 0
+ 5    JW,EW,AM,BF vs. MM,RO,TD,EO -> 2
+ 6    JW,EW,AM,RO vs. MM,BF,TD,EO -> 2
+ 7    JW,EW,MM,EO vs. AM,BF,RO,TD -> 2
+ 8    JW,EW,BF,TD vs. AM,MM,RO,EO -> 2
+ 9    JW,EW,RO,TD vs. AM,MM,BF,EO -> 2
+best diff: 0
+ties for best game: 5
+seed: 202102271
+use index: 2
+----
+
+There are 35 possible combinations.
+
+5 of them have difference 0 (5 ties).
+
+The random seed is based on today's date followed by the game number of the night.
+
+The random choice for the game is index 2 or:
+
+----
+ 2    JW,AM,BF,EO vs. EW,MM,RO,TD -> 0
+----
+
+== Future ideas
+
+. I want the game to be able to try all of our AI players and find the lowest difference- thus we will have interesting games with high and low level AIs, that will make for teams you would not otherwise see (for example, our best players will get to play together against lesser players coupled with strong AIs).
+. Older games should be weighted weakly in the ranks.  This is easy.  I think I will simply reduce all ranks by 10% each month.
 
 == Sample history
 
