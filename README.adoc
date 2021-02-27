@@ -109,7 +109,7 @@ There are 35 possible combinations.
 
 5 of them have difference 0 (5 ties).
 
-The random seed is based on today's date followed by the game number of the night.
+The random seed is based on today's date followed by the game number of the night (thus, anyone can run the program and get the same result).
 
 The random choice for the game is index 2 or:
 
